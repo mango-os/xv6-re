@@ -60,7 +60,7 @@ KERNEL_CLEAN := \
 	kernel/kernel\
 	bootother\
 	initcode\
-	xv6.img
+	mangoOS.img
 
 # add include dir to search path for headers
 KERNEL_CPPFLAGS += -I include
@@ -88,10 +88,10 @@ KERNEL_LDFLAGS += -nostdlib
 KERNEL_LDFLAGS += --omagic
 
 # bootable disk image
-xv6.img: kernel/bootblock kernel/kernel
-	dd if=/dev/zero of=xv6.img count=10000
-	dd if=kernel/bootblock of=xv6.img conv=notrunc
-	dd if=kernel/kernel of=xv6.img seek=1 conv=notrunc
+mangoOS.img: kernel/bootblock kernel/kernel
+	dd if=/dev/zero of=mangoOS.img count=10000
+	dd if=kernel/bootblock of=mangoOS.img conv=notrunc
+	dd if=kernel/kernel of=mangoOS.img seek=1 conv=notrunc
 
 kernel/kernel:	\
 		$(KERNEL_OBJECTS) kernel/multiboot.o kernel/data.o bootother initcode

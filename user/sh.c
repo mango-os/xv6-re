@@ -261,7 +261,7 @@ runcmd(struct cmd *cmd)
 int
 getcmd(char *buf, int nbuf)
 {
-  printf(2, "xv6:");
+  printf(2, "mangoOS:");
   pwd();
   printf(2, " user$ ");
   memset(buf, 0, nbuf);

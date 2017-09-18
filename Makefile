@@ -9,7 +9,7 @@
 
 # Default make target
 .PHONY: all
-all: xv6.img fs.img
+all: mangoOS.img fs.img
 
 ################################################################################
 # Build options
@@ -84,7 +84,7 @@ ifndef CPUS
 CPUS := 1
 endif
 
-QEMUOPTS := -hdb fs.img xv6.img -smp $(CPUS) -snapshot
+QEMUOPTS := -hdb fs.img mangoOS.img -smp $(CPUS) -snapshot
 
 ################################################################################
 # Main Targets
@@ -104,42 +104,42 @@ clean:
 
 run: qemu
 
-# run xv6 in qemu
-qemu: fs.img xv6.img
+# run mangoOS in qemu
+qemu: fs.img mangoOS.img
 	@echo Ctrl+a h for help
 	$(QEMU) -serial mon:stdio $(QEMUOPTS)
 
-# run xv6 in qemu without a display (serial only)
-qemu-nox: fs.img xv6.img
+# run mangoOS in qemu without a display (serial only)
+qemu-nox: fs.img mangoOS.img
 	@echo Ctrl+a h for help
 	$(QEMU) -nographic $(QEMUOPTS)
 
-# run xv6 in qemu in debug mode
-qemu-gdb: fs.img xv6.img .gdbinit
+# run mangoOS in qemu in debug mode
+qemu-gdb: fs.img mangoOS.img .gdbinit
 	@echo "Now run 'gdb' from another terminal." 1>&2
 	@echo Ctrl+a h for help
 	$(QEMU) -serial mon:stdio $(QEMUOPTS) -S $(QEMUGDB)
 
-# run xv6 in qemu without a display (serial only) in debug mode
-qemu-nox-gdb: fs.img xv6.img .gdbinit
+# run mangoOS in qemu without a display (serial only) in debug mode
+qemu-nox-gdb: fs.img mangoOS.img .gdbinit
 	@echo "Now run 'gdb' from another terminal." 1>&2
 	@echo Ctrl+a h for help
 	$(QEMU) -nographic $(QEMUOPTS) -S $(QEMUGDB)
 
-# run xv6 in bochs
-bochs: fs.img xv6.img .bochsrc
+# run mangoOS in bochs
+bochs: fs.img mangoOS.img .bochsrc
 	bochs -q
 
 # generate dependency files
 depend: $(DEPS)
 
 dist: clean
-	mkdir -p dist/xv6
+	mkdir -p dist/mangoOS
 	git describe --long > version
 	cp -r version include kernel tools user FILES Makefile \
-		README .gitignore dist/xv6/
-	cd dist && tar -czf xv6.tar.gz xv6
-	mv dist/xv6.tar.gz .
+		README .gitignore dist/mangoOS/
+	cd dist && tar -czf mangoOS.tar.gz mangoOS
+	mv dist/mangoOS.tar.gz .
 	rm -rf dist
 
 

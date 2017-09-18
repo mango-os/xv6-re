@@ -82,7 +82,7 @@ lapicinit(int c)
 
   // The timer repeatedly counts down at bus frequency
   // from lapic[TICR] and then issues an interrupt.  
-  // If xv6 cared more about precise timekeeping,
+  // If mangoOS cared more about precise timekeeping,
   // TICR would be calibrated using an external time source.
   lapicw(TDCR, X1);
   lapicw(TIMER, PERIODIC | (T_IRQ0 + IRQ_TIMER));

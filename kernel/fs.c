@@ -2,7 +2,7 @@
 //   + Blocks: allocator for raw disk blocks.
 //   + Files: inode allocator, reading, writing, metadata.
 //   + Directories: inode with special contents (list of other inodes!)
-//   + Names: paths like /usr/rtm/xv6/fs.c for convenient naming.
+//   + Names: paths like /usr/rtm/mangoOS/fs.c for convenient naming.
 //
 // Disk layout is: superblock, inodes, block in-use bitmap, data blocks.
 //
