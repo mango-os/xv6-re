@@ -3,7 +3,8 @@
 #include "types.h"
 #include "user.h"
 #include "fcntl.h"
-
+#include "fs.h"
+#include "stat.h"
 // Parsed command representation
 #define EXEC  1
 #define REDIR 2
@@ -12,6 +13,10 @@
 #define BACK  5
 
 #define MAXARGS 10
+
+#define COMMANDNUM 22
+char *command[COMMANDNUM] = { "cat", "cd", "cp", "echo", "forktest", "grep", "init", "kill", "ln", "ls",
+"mkdir", "ren", "rm", "splice", "sh", "stressfs", "usertests", "editor", "wc", "zombie", "cal" };
 
 struct cmd {
   int type;
@@ -53,6 +58,115 @@ int fork1(void);  // Fork but panics on failure.
 void panic(char*);
 struct cmd *parsecmd(char*);
 
+int
+get_inum(char *path)
+{
+    struct stat st;
+    int fd;
+
+    if ((fd = open(path, 0)) < 0)
+    {
+        printf(2, "pwd: cannot open %s\n", path);
+        exit();
+    }
+
+    if ((fstat(fd, &st)) < 0)
+    {
+        printf(2, "pwd: cannot stat %s\n", path);
+        exit();
+    }
+
+    close(fd);
+
+    return st.ino;
+}
+
+void
+get_dirent(char *path, int inum, struct dirent *cur_de)
+{
+    struct dirent tmp_de;
+    int dir;
+
+    if ((dir = open(path, 0)) < 0)
+    {
+        printf(2, "pwd: cannot open %s\n", path);
+        exit();
+    }
+
+    while(read(dir, &tmp_de, sizeof(tmp_de)) == sizeof(tmp_de))
+    {
+        if(tmp_de.inum == inum)
+            break;
+    }
+    close(dir);
+    *cur_de = tmp_de;
+}
+
+void
+prepend(char *str, char *prefix, int max_size)
+{
+    char buf[1024];
+    strcpy(buf, str);
+    if((max_size - strlen(prefix)) < strlen(buf))
+    {
+        printf(2, "pwd: cannot prepend prefix %s to %s, length of path is not enough\n", prefix, buf);
+        exit();
+    }
+    memmove(str + strlen(prefix), buf, max_size - strlen(prefix));
+    memmove(str, prefix, strlen(prefix));
+}
+
+void
+pwd ()
+{
+    char cur_path[256] = ".";
+    char parent_path[256] = "..";
+    char working_directory[256] = "";
+    struct dirent cur_de;
+
+    while(get_inum(cur_path) != get_inum(parent_path))
+    {
+        get_dirent(parent_path, get_inum(cur_path), &cur_de);
+        prepend(working_directory, cur_de.name, sizeof(working_directory));
+        prepend(working_directory, "/", sizeof(working_directory));
+        strcpy(cur_path, parent_path);
+        prepend(parent_path, "../", sizeof(parent_path));
+    }
+
+    if(working_directory[0] == '\0')
+    {
+        prepend(working_directory, "/", sizeof(working_directory));
+    }
+    printf(2, "%s", working_directory);
+
+}
+// Execute failed. Find similar cmd.
+void
+findcmd(char *cmd)
+{
+	int i, ismatched = 0;
+	for (i = 0; i < COMMANDNUM; i++){
+		char *yourcmd = cmd;
+		int j, matchcharnum = 0;
+		int flag[MAXARGS] = { 0 };
+		for (; *yourcmd; yourcmd++){
+			for (j = 0; command[i][j]; j++){
+				if (*yourcmd == command[i][j] && flag[j] == 0){
+					matchcharnum++;
+					flag[j] = 1;
+					break;
+				}
+			}
+		}
+		if (matchcharnum >= 2){
+			if (ismatched == 0)
+				printf(2, "'%s' exec failed. Do you want to enter:\n", cmd);
+			ismatched = 1;
+			printf(2, "command '%s'\n", command[i]);
+		}
+	}
+}
+
 // Execute cmd.  Never returns.
 void
 runcmd(struct cmd *cmd)
@@ -63,7 +177,7 @@ runcmd(struct cmd *cmd)
   struct listcmd *lcmd;
   struct pipecmd *pcmd;
   struct redircmd *rcmd;
-
+  int i;
   if(cmd == 0)
     exit();
   
@@ -72,12 +186,26 @@ runcmd(struct cmd *cmd)
     panic("runcmd");
 
   case EXEC:
-    ecmd = (struct execcmd*)cmd;
-    if(ecmd->argv[0] == 0)
-      exit();
-    exec(ecmd->argv[0], ecmd->argv);
-    printf(2, "exec %s failed\n", ecmd->argv[0]);
-    break;
+	
+    	ecmd = (struct execcmd*)cmd;
+	if (ecmd->argv[0] == 0)
+		exit();
+	// get the right place and point to currentDir
+	for (i = 0; ecmd->argv[i]; i++);
+	//ecmd->argv[i] = currentDir;
+	ecmd->argv[i] = 0;
+  for (i = 0; ecmd->argv[0][i]; i++){};
+	char *newcommand=malloc((i+1)*sizeof(char));
+	newcommand[0]='/';
+	for(i=0;ecmd->argv[0][i]; i++){newcommand[i+1]=ecmd->argv[0][i];}
+	exec(newcommand, ecmd->argv);
+//
+
+	exec(ecmd->argv[0], ecmd->argv);
+	if (ecmd->argv[0][0] == 'v' && ecmd->argv[0][1] == 'i' && ecmd->argv[0][2] == 'm' && ecmd->argv[0][3] == 0)
+		break;
+	findcmd(ecmd->argv[0]);
+	break;
 
   case REDIR:
     rcmd = (struct redircmd*)cmd;
@@ -133,7 +261,9 @@ runcmd(struct cmd *cmd)
 int
 getcmd(char *buf, int nbuf)
 {
-  printf(2, "$ ");
+  printf(2, "xv6:");
+  pwd();
+  printf(2, " user$ ");
   memset(buf, 0, nbuf);
   gets(buf, nbuf);
   if(buf[0] == 0) // EOF
@@ -146,7 +276,7 @@ main(void)
 {
   static char buf[100];
   int fd;
-    
+  
   // Assumes three file descriptors open.
   while((fd = open("console", O_RDWR)) >= 0){
     if(fd >= 3){
@@ -169,7 +299,6 @@ main(void)
       runcmd(parsecmd(buf));
     wait();
   }
-
   exit();
 }
 
@@ -191,6 +320,7 @@ fork1(void)
   return pid;
 }
 
+//PAGEBREAK!
 // Constructors
 
 struct cmd*
@@ -257,10 +387,11 @@ backcmd(struct cmd *subcmd)
   cmd->cmd = subcmd;
   return (struct cmd*)cmd;
 }
+//PAGEBREAK!
 // Parsing
 
 char whitespace[] = " \t\r\n\v";
-char symbols[] = "<|>&;()";
+char symbols[] = "<|>&;";
 
 int
 gettoken(char **ps, char *es, char **q, char **eq)
@@ -278,8 +409,6 @@ gettoken(char **ps, char *es, char **q, char **eq)
   case 0:
     break;
   case '|':
-  case '(':
-  case ')':
   case ';':
   case '&':
   case '<':

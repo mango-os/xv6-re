@@ -27,6 +27,8 @@ USER_PROGS := \
 	rename\
 	pwd\
 	big\
+	vi\
+	touch\
 
 USER_PROGS := $(addprefix user/, $(USER_PROGS))
 
