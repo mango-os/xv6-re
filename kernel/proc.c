@@ -274,8 +274,6 @@ void
 scheduler(void)
 {
   struct proc *p;
-  int haveHigh = 1;
-  int noHighCount = 0;
 
   for(;;){
     // Enable interrupts on this processor.
@@ -283,53 +281,30 @@ scheduler(void)
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      ++noHighCount;
-      // If no runnable process is in high priority, then high bit set to 0
-      if (noHighCount == NPROC)
-        haveHigh = 0;
+
       if(p->state != RUNNABLE)
+      {
         continue;
-      // If high bit is 1, ignore low priority processes
-      if (haveHigh && p->priority == 1)
-        continue;
-      // If high bit is 0, first check if any high priority process is runnable
-      if (!haveHigh) {
-        struct proc *temp = ptable.proc;
-        for (temp = ptable.proc; temp < &ptable.proc[NPROC]; temp++) {
-          if (temp->priority == 2 && temp->state == RUNNABLE) {
-            p = temp;
-            noHighCount = 0;
-            haveHigh = 1;
-            break;
-          }
-        }
       }
 
-      // Switch to chosen process.  It is the process's job
-      // to release ptable.lock and then reacquire it
-      // before jumping back to us.
-      proc = p;
-      switchuvm(p);
-      p->state = RUNNING;
-      // Store the start time of the process
-      acquire(&tickslock);
-      uint ticks0 = ticks;
-      release(&tickslock);
-      swtch(&cpu->scheduler, proc->context);
-      switchkvm();
-      acquire(&tickslock);
-      uint duration = ticks - ticks0;
-      release(&tickslock);
-      if (p->priority == 2) {
-        p->highPriorityTime += duration;
-      }
-      else {
-        p->lowPriorityTime += duration;
-      }
+      if(p->current_priority!=0)
+      {
+        p->current_priority = p->current_priority -1;
+        // Switch to chosen process.  It is the process's job
+        // to release ptable.lock and then reacquire it
+        // before jumping back to us.
+        proc = p;
+        switchuvm(p);
+        p->state = RUNNING;
 
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
-      proc = 0;
+
+        swtch(&cpu->scheduler, proc->context);
+        switchkvm();
+        proc = 0;
+        p--;
+      }
+      else
+        p->current_priority = p->priority;
     }
     release(&ptable.lock);
 

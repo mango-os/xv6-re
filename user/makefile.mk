@@ -23,7 +23,7 @@ USER_PROGS := \
 	cp\
 	mv\
 	uptime\
-	calc\
+	bc\
 	rename\
 	pwd\
 	big\
