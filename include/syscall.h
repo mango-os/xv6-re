@@ -30,5 +30,6 @@
 #define SYS_shmem_count  26
 #define SYS_clone        27
 #define SYS_join         28
+#define SYS_date       29
 
 #endif // _SYSCALL_H_

@@ -29,6 +29,7 @@ USER_PROGS := \
 	big\
 	vi\
 	touch\
+	date\
 
 USER_PROGS := $(addprefix user/, $(USER_PROGS))
 

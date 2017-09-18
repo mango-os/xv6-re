@@ -11,14 +11,12 @@ char* fmtname(char *path);
 
 int main(int argc, char *argv[])
 {
-	//判断参数
 	if (argc !=3)
 	{
 		printf(1, "please input the command as [mv src_file dest_file]\n");
 		exit();
 	}
 	
-	//打开源文件
 	int fd_src = open(argv[1], O_RDONLY);
 	if (fd_src == -1)
 	{
@@ -26,7 +24,6 @@ int main(int argc, char *argv[])
 		exit();
 	}
 	
-	//判断源文件状态是否为文件夹
 	struct stat st;
 	fstat(fd_src, &st);
 	if (st.type == T_DIR)
@@ -38,14 +35,12 @@ int main(int argc, char *argv[])
 		exit();
 	}
 
-	//判断第二个参数是不是以"/"结尾，如果是，则补全路径
 	char com[128] = {};
 	strcpy(com, argv[2]);
 	int len1 = strlen(argv[1]);
 	int len2 = strlen(argv[2]);
 	if (argv[2][len2-1] == '/')
 	{
-		//找到argv[1]中的文件名
 		int i = len1 - 1;
 		for (; i >= 0; i--)
 			if (argv[1][i] == '/')
@@ -54,7 +49,6 @@ int main(int argc, char *argv[])
 		strcpy(&com[len2], &argv[1][i]);
 	}
 	
-	//打开目标文件
 	int fd_dest = open(com, O_WRONLY|O_CREATE);
 	if (fd_dest == -1)
 	{
@@ -62,21 +56,17 @@ int main(int argc, char *argv[])
 		exit();
 	}
 	
-	//复制文件
 	char buf[BUF_SIZE] = {};
 	int len = 0;
 	while((len = read(fd_src, buf, BUF_SIZE)) > 0)
 		write(fd_dest, buf, len);
 	
-	//关闭文件
 	close(fd_src);
 	close(fd_dest);
 	
-	//删除源文件
 	if(unlink(argv[1]) < 0)
 		printf(1, "delete source file failed\n");
 	
-	//关闭程序
 	exit();
 }
 
@@ -85,12 +75,10 @@ char* fmtname(char *path)
 	static char buf[DIRSIZ+1];
 	char *p;
 	
-	// Find first character after last slash.
 	for(p=path+strlen(path); p >= path && *p != '/'; p--)
 		;
 	p++;
 	
-	// Return blank-padded name.
 	if(strlen(p) >= DIRSIZ)
 		return p;
 	memmove(buf, p, strlen(p));

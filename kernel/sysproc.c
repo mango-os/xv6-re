@@ -6,6 +6,7 @@
 #include "proc.h"
 #include "sysfunc.h"
 #include "pstat.h"
+#include "date.h"
 
 int
 sys_fork(void)
@@ -88,6 +89,20 @@ sys_uptime(void)
   xticks = ticks;
   release(&tickslock);
   return xticks;
+}
+
+// return date in UTC
+//sysproc.c
+//cmostime定义在lapic.c中
+int
+sys_date(void)
+{
+  struct rtcdate *r;
+
+  if (argptr(0, (void *)&r, sizeof(*r)) < 0)
+          return -1;
+  cmostime(r);  //从cmos中获取时间
+  return 0;
 }
 
 // return the number of existing processes
