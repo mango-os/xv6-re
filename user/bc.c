@@ -243,7 +243,7 @@ char* caln(char** src)
 int cal(char* src)
 {
   char* res = caln(toRPN(split(src)));
-  printf(2, "The answer is: %s\n", res);
+  printf(2, "%s\n", res);
   return chars_to_int(res);
 }
 

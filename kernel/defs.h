@@ -10,6 +10,7 @@ struct proc;
 struct pstat;
 struct spinlock;
 struct stat;
+struct rtcdate;
 
 // bio.c
 void            binit(void);
@@ -70,8 +71,8 @@ void            kinit(void);
 
 // kbd.c
 void            kbdintr(void);
-
 // lapic.c
+void            cmostime(struct rtcdate *r);
 int             cpunum(void);
 extern volatile uint*    lapic;
 void            lapiceoi(void);

@@ -13,9 +13,7 @@ main(int argc, char *argv[])
 	int i, count = 0;
 	for (i = 1; i < argc; i++) {		
 		int fd;
-		// 测试文件是否存在
 		if ((fd = open(argv[i], O_RDONLY)) < 0) {
-			// 文件不存在就创建它
 			fd = open(argv[i], O_CREATE|O_RDONLY);
 			count++;
 		}

@@ -19,29 +19,22 @@ void com_save(char *text[], char *path);
 void com_exit(char *text[], char *path);
 int stringtonumber(char* src);
 
-//标记是否更改过
 int changed = 0;
 int auto_show = 1;
 
 int main(int argc, char *argv[])
 {
-	//setProgramStatus(EDITOR);
 	if (argc == 1)
 	{
 		printf(1, "please input the command as [editor file_name]\n");
-		//setProgramStatus(SHELL);
 		exit();
 	}
-	//存放文件内容
 	
 	char *text[MAX_LINE_NUMBER] = {};
 	text[0] = malloc(MAX_LINE_LENGTH);
 	memset(text[0], 0, MAX_LINE_LENGTH);
-	//存储当前最大的行号，从0开始。即若line_number == x，则从text[0]到text[x]可用
 	int line_number = 0;
-	//尝试打开文件
 	int fd = open(argv[1], O_RDONLY);
-	//如果文件存在，则打开并读取里面的内容
 	if (fd != -1)
 	{
 		printf(1, "file exist\n");
@@ -54,11 +47,9 @@ int main(int argc, char *argv[])
 			int is_full = 0;
 			while (i < len)
 			{
-				//拷贝"\n"之前的内容
 				for (i = next; i < len && buf[i] != '\n'; i++)
 					;
 				strcat_n(text[line_number], buf+next, i-next);
-				//必要时新建一行
 				if (i < len && buf[i] == '\n')
 				{
 					if (line_number >= MAX_LINE_NUMBER - 1)
@@ -84,12 +75,9 @@ int main(int argc, char *argv[])
 		exit();
 	}
 	
-	//输出文件内容
 	show_text(text);
-	//输出帮助
 	com_help(text);
 	
-	//处理命令
 	char input[MAX_LINE_LENGTH] = {};
 	while (1)
 	{
@@ -99,7 +87,6 @@ int main(int argc, char *argv[])
 		int len = strlen(input);
 		input[len-1] = '\0';
 		len --;
-		//寻找命令中第一个空格
 		int pos = MAX_LINE_LENGTH - 1;
 		int j = 0;
 		for (; j < 8; j++)
@@ -110,13 +97,11 @@ int main(int argc, char *argv[])
 				break;
 			}
 		}
-		//ins
 		if (input[0] == 'i' && input[1] == 'n' && input[2] == 's')
 		{
 			if (input[3] == '-'&&stringtonumber(&input[4])>=0)
 			{
 				com_ins(text, stringtonumber(&input[4]), &input[pos]);
-                                 //插入操作需要更新行号
 				line_number = get_line_number(text);
 			}
 			else if(input[3] == ' '||input[3] == '\0')
@@ -130,7 +115,6 @@ int main(int argc, char *argv[])
 				com_help(text);
 			}
 		}
-		//mod
 		else if (input[0] == 'm' && input[1] == 'o' && input[2] == 'd')
 		{
 			if (input[3] == '-'&&stringtonumber(&input[4])>=0)
@@ -143,7 +127,6 @@ int main(int argc, char *argv[])
 				com_help(text);
 			}
 		}
-		//del
 		else if (input[0] == 'd' && input[1] == 'e' && input[2] == 'l')
 		{
 			if (input[3] == '-'&&stringtonumber(&input[4])>=0)
@@ -186,12 +169,10 @@ int main(int argc, char *argv[])
 			com_help(text);
 		}
 	}
-	//setProgramStatus(SHELL);
 	
 	exit();
 }
 
-//拼接src的前n个字符到dest
 char* strcat_n(char* dest, char* src, int len)
 {
 	if (len <= 0)
@@ -215,7 +196,6 @@ void show_text(char *text[])
 		printf(1, "%d%d%d:%s\n", (j+1)/100, ((j+1)%100)/10, (j+1)%10, text[j]);
 }
 
-//获取当前最大的行号，从0开始，即return x表示text[0]到text[x]可用
 int get_line_number(char *text[])
 {
 	int i = 0;
@@ -239,8 +219,6 @@ int stringtonumber(char* src)
 	return number;
 }
 
-//插入命令，n为用户输入的行号，从1开始
-//extra:输入命令时接着的信息，代表待插入的文本
 void com_ins(char *text[], int n, char *extra)
 {
 	if (n < 0 || n > get_line_number(text) + 1)
@@ -294,8 +272,6 @@ void com_ins(char *text[], int n, char *extra)
 		show_text(text);
 }
 
-//修改命令，n为用户输入的行号，从1开始
-//extra:输入命令时接着的信息，代表待修改成的文本
 void com_mod(char *text[], int n, char *extra)
 {
 	if (n <= 0 || n > get_line_number(text) + 1)
@@ -319,7 +295,6 @@ void com_mod(char *text[], int n, char *extra)
 		show_text(text);
 }
 
-//删除命令，n为用户输入的行号，从1开始
 void com_del(char *text[], int n)
 {
 	if (n <= 0 || n > get_line_number(text) + 1)
@@ -362,14 +337,11 @@ void com_help(char *text[])
 
 void com_save(char *text[], char *path)
 {
-	//删除旧有文件
 	unlink(path);
-	//新建文件并打开
 	int fd = open(path, O_WRONLY|O_CREATE);
 	if (fd == -1)
 	{
 		printf(1, "save failed, file can't open:\n");
-		//setProgramStatus(SHELL);
 		exit();
 	}
 	if (text[0] == NULL)
@@ -377,7 +349,6 @@ void com_save(char *text[], char *path)
 		close(fd);
 		return;
 	}
-	//写数据
 	write(fd, text[0], strlen(text[0]));
 	int i = 1;
 	for (; text[i] != NULL; i++)
@@ -393,7 +364,6 @@ void com_save(char *text[], char *path)
 
 void com_exit(char *text[], char *path)
 {
-	//询问是否保存
 	while (changed == 1)
 	{
 		printf(1, "save the file? y/n\n");
@@ -407,14 +377,11 @@ void com_exit(char *text[], char *path)
 		else
 		printf(2, "wrong answer?\n");
 	}
-	//释放内存
 	int i = 0;
 	for (; text[i] != NULL; i++)
 	{
 		free(text[i]);
 		text[i] = 0;
 	}
-	//退出
-	//setProgramStatus(SHELL);
 	exit();
 }

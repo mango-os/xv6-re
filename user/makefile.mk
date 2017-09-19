@@ -23,12 +23,14 @@ USER_PROGS := \
 	cp\
 	mv\
 	uptime\
-	calc\
+	bc\
 	rename\
 	pwd\
 	big\
 	vi\
 	touch\
+	date\
+	mango\
 
 USER_PROGS := $(addprefix user/, $(USER_PROGS))
 

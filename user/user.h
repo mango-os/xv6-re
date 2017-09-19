@@ -3,6 +3,7 @@
 
 struct stat;
 struct pstat;
+struct rtcdate;
 typedef uint lock_t;
 
 // system calls
@@ -34,6 +35,7 @@ void* shmem_access(int);
 int shmem_count(int);
 int clone(void (*)(void*), void*, void*);
 int join(void**);
+int date(struct rtcdate *);
 
 // user library functions (ulib.c)
 int stat(char*, struct stat*);
