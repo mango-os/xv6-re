@@ -180,12 +180,13 @@ fs.img: tools/mkfs fs/README fs/logo $(addprefix fs/,$(USER_BINS))
 .DEFAULT:
 	@echo "No rule to make target $@"
 
-qemu-grub: fs.img kernel/kernel iso
+qemu-grub: fs.img iso
 	$(QEMU) -cdrom mangoOS.iso  -k en-us  -hdb fs.img
-iso:
+iso:kernel/kernel
 	mkdir -p isodir
 	mkdir -p isodir/boot
 	mkdir -p isodir/boot/grub
 	cp kernel/kernel isodir/boot/mangoOS.kernel
-	echo 'menuentry "mangoOS" {multiboot /boot/mangoOS.kernel}' > isodir/boot/grub/grub.cfg
+	cp anotherOS.kernel isodir/boot/anotherOS.kernel
+	echo 'menuentry "mangoOS" {multiboot /boot/mangoOS.kernel}; menuentry "anotherOS" {multiboot /boot/anotherOS.kernel}' > isodir/boot/grub/grub.cfg
 	grub-mkrescue -o mangoOS.iso isodir
