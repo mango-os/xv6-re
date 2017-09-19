@@ -26,7 +26,6 @@ USER_PROGS := \
 	bc\
 	rename\
 	pwd\
-	big\
 	vi\
 	touch\
 	date\

@@ -94,7 +94,7 @@ include user/makefile.mk
 include tools/makefile.mk
 DEPS := $(KERNEL_DEPS) $(USER_DEPS) $(TOOLS_DEPS)
 CLEAN := $(KERNEL_CLEAN) $(USER_CLEAN) $(TOOLS_CLEAN) \
-	fs fs.img .gdbinit .bochsrc dist
+	fs fs.img .gdbinit .bochsrc dist isodir *.iso
 
 .PHONY: clean distclean run depend qemu qemu-nox qemu-gdb qemu-nox-gdb bochs
 
@@ -179,3 +179,13 @@ fs.img: tools/mkfs fs/README fs/logo $(addprefix fs/,$(USER_BINS))
 
 .DEFAULT:
 	@echo "No rule to make target $@"
+
+qemu-grub: fs.img kernel/kernel iso
+	$(QEMU) -cdrom mangoOS.iso  -k en-us  -hdb fs.img
+iso:
+	mkdir -p isodir
+	mkdir -p isodir/boot
+	mkdir -p isodir/boot/grub
+	cp kernel/kernel isodir/boot/mangoOS.kernel
+	echo 'menuentry "mangoOS" {multiboot /boot/mangoOS.kernel}' > isodir/boot/grub/grub.cfg
+	grub-mkrescue -o mangoOS.iso isodir

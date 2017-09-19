@@ -14,3 +14,5 @@ tools/mkfs
 user/bin/
 .DS_Store
 .vscode
+*.iso
+isodir
