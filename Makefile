@@ -137,7 +137,7 @@ dist: clean
 	mkdir -p dist/mangoOS
 	git describe --long > version
 	cp -r version include kernel tools user FILES Makefile \
-		README .gitignore dist/mangoOS/
+		README .gitignore dist/mangoOS/ logo
 	cd dist && tar -czf mangoOS.tar.gz mangoOS
 	mv dist/mangoOS.tar.gz .
 	rm -rf dist
@@ -164,8 +164,11 @@ fs/%: user/bin/% | fs
 fs/README: README | fs
 	cp $< $@
 
+fs/logo: logo | fs
+	cp $< $@
+
 USER_BINS := $(notdir $(USER_PROGS))
-fs.img: tools/mkfs fs/README $(addprefix fs/,$(USER_BINS))
+fs.img: tools/mkfs fs/README fs/logo $(addprefix fs/,$(USER_BINS))
 	./tools/mkfs fs.img fs
 
 .gdbinit: tools/dot-gdbinit

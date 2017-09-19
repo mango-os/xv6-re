@@ -30,6 +30,7 @@ USER_PROGS := \
 	vi\
 	touch\
 	date\
+	mango\
 
 USER_PROGS := $(addprefix user/, $(USER_PROGS))
 
